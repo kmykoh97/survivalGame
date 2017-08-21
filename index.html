@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+    <head><title>Dodge or Die</title></head>
+<body>
+<canvas id="arena"></canvas>
+<script>
+var arena;
+var arenaContext;
+arena = document.getElementById('arena');
+arenaContext = arena.getContext('2d');
+arena.width = window.innerWidth;
+arena.height = window.innerHeight;
+
+//Global Variables
+var player1X = arena.width/2;
+var player1Y = arena.height/2;
+var playerR = arena.width/60;
+
+var score = 0;
+    
+var playerAlive = true;
+var distance;
+
+//Get mouse position
+function calculateMousePos(evt) {
+    var rect = arena.getBoundingClientRect();
+    var root = document.documentElement;
+    
+    var mouseY = evt.clientY - rect.top - root.scrollTop;
+    var mouseX = evt.clientX - rect.left - root.scrollLeft;
+    return {
+        y:mouseY, x:mouseX
+    };
+}
+
+function handleClick() {
+if (playerAlive == false) {
+    score = 0;
+    playerAlive = true;
+    player1X = arena.width/2;
+    player1Y = arena.height/2;
+    
+    createAll();
+    }
+}
+
+window.onload = function() {
+
+    var framesPerSecond = 250;
+    setInterval(Framework, 1000/framesPerSecond);
+    setInterval(trackScore, 1000); 
+
+    arena.addEventListener("touchmove", function(e){
+        e.preventDefault();
+        player1Y = e.touches[0].pageY;
+        player1X = e.touches[0].pageX;
+    })
+
+    arena.addEventListener('mousedown', handleClick);
+
+    arena.addEventListener('mousemove', 
+        function(evt) {
+        var mousePos = calculateMousePos(evt);
+        player1Y = mousePos.y;
+        player1X = mousePos.x;
+        });
+}
+//Calculate Score
+function trackScore() {
+    if (playerAlive == true && score < 350) {score += 5;}
+    if (playerAlive == true && score >= 350 && score < 950) {score += 10;}
+    if (playerAlive == true && score >= 950 && score < 2150) {score += 20;}
+    if (playerAlive == true && score >= 1550 && score < 3050) {score += 50;}
+    if (playerAlive == true && score >= 3050) {score += 100;}
+} 
+
+function Framework() {
+    setBorders();
+    drawEverything();
+}
+
+function setBorders() {
+    //Disable crossing left border
+    if (player1X <= arena.width/6+playerR) {player1X = arena.width/6+playerR;}
+    //Disable crossing right border
+    if (player1X >= arena.width/6+arena.width/1.5-playerR) {player1X = arena.width/6+arena.width/1.5-playerR;}
+    //Disable crossing top border
+    if (player1Y <= arena.height/6+playerR) {player1Y = arena.height/6+playerR;}
+    //Disable crossing bottom border
+    if (player1Y >= arena.height/6+arena.height/1.5-playerR) {player1Y = arena.height/6+arena.height/1.5-playerR;}
+}
+
+function drawEverything() {
+    //water
+    colorRect(0, 0, arena.width, arena.height, "#00ffff")
+    // wall
+    strokeRect(arena.width/6, arena.height/6, arena.width/1.5, arena.height/1.5, "#ffff00", 5)
+    // arena
+    colorRect(arena.width/6, arena.height/6, arena.width/1.5, arena.height/1.5, "#000000");
+
+    // player
+    if (player1X >= arena.width/6+playerR && player1X <= arena.width/6+arena.width/1.5-playerR && player1Y >= arena.height/6+playerR && player1Y <= arena.height/6+arena.height/1.5-playerR) {
+    colorCircle(player1X, player1Y, playerR, '#ffffff')};
+    
+    //score
+    arenaContext.fillStyle = "#000000";
+    arenaContext.font = "30px Arial";
+    arenaContext.fillText("Score: " + score, arena.width/3, arena.height/15);
+    
+    //drones
+    if (score >= 50) {moveCommon(12);}
+    if (score >= 350) {moveBig(6);}
+    if (score >= 950) {moveHuge(2)}
+    
+    //Endscreen
+    if (playerAlive == false) {
+        colorRect(0, 0, arena.width, arena.height, "#000000");
+        arenaContext.font = "20px Arial";
+        arenaContext.fillStyle = "#008000";  
+        arenaContext.fillText("You are dead!", arena.width/3, arena.height/10);
+        arenaContext.fillText("Score: " + score, arena.width/3, arena.height/2);
+        if (score > 1500) {
+            arenaContext.fillText("Gogo, post that in the comments!!!", arena.width/9, arena.height/1.8); 
+        }//*****************Created by Naitomea*****************
+        arenaContext.fillText("Click to restart!", arena.width/3, arena.height/1.2);   
+    }
+}
+
+function colorCircle(centerX, centerY, radius, drawColor) {
+    arenaContext.fillStyle = drawColor;
+    arenaContext.beginPath();
+    arenaContext.arc(centerX, centerY, radius, 0,Math.PI*2, true);
+    arenaContext.fill();
+}
+
+function colorRect(leftX,topY,width,height,drawColor){
+    arenaContext.fillStyle = drawColor;
+    arenaContext.fillRect(leftX,topY,width,height);
+}
+
+function strokeRect(leftX, topY, width, height, drawColor, Thickness) {
+    arenaContext.strokeStyle = drawColor;
+    arenaContext.lineWidth = Thickness;
+    arenaContext.strokeRect(leftX, topY, width, height);
+}
+
+//Everything Related To Drones
+function rand(min,max) {return Math.floor(Math.random() * (max - min + 1)) + min;}
+
+var placeX = new Array();
+var placeY = new Array();
+var speedX = new Array();
+var speedY = new Array();
+
+function getSpeed() {
+    for (i=0; i < 25; i++) {
+        speedX[i] = Math.random();
+        speedY[i] = Math.sqrt(1 - Math.pow(speedX[i], 2));//superpostion property -> Same movement speed for all drones
+    }
+}
+
+function getPlaceX() {
+    for (i=0; i < 25; i++) {
+        placeX[i] = rand(arena.width/10, arena.width - arena.width/10);
+        if (placeX[i] > arena.width/6 && placeX[i] < arena.width/6 + arena.width/1.5) {i--;} 
+    }
+}
+
+function getPlaceY() {
+    for (i=0; i < 25; i++) {
+        placeY[i] = rand(arena.width/10, arena.height - arena.width/10);
+        if (placeY[i] > arena.height/6 && placeY[i] < arena.height/6 + arena.height/1.5) {i--;} 
+    } 
+}
+
+function getVariables() {
+    getSpeed();
+    getPlaceX();
+    getPlaceY();  
+}
+
+function setDrone(color, radius, speedX, speedY, droneX, droneY) {
+    this.instantiateDrone = function() {
+        colorCircle (droneX, droneY, radius, color);
+    
+        droneX += speedX;
+        if (droneX <= radius || droneX >= arena.width-radius) {speedX = -speedX;}//reverse speed by contact with outer rim
+        droneY += speedY;
+        if (droneY <= radius || droneY >= arena.height-radius) {speedY = -speedY;}//reverse speed by contact with outer rim
+        
+        //Collision Detector
+        //based on Euclidian Metric
+        distance = Math.sqrt(Math.pow(droneX - player1X, 2) + Math.pow(droneY - player1Y, 2));
+        if (distance  < playerR + radius) {
+            playerAlive = false;}
+    }
+}
+
+//Common Section
+var common = new Array();
+function createCommon(amount) {
+    for (i=0; i < amount; i++) {
+        common[i] = new setDrone("blue", arena.width/40, speedX[i], speedY[i], placeX[i], placeY[i]);
+    }
+}
+function moveCommon(amount) {
+    for (i=0; i < amount; i++) {
+        common[i].instantiateDrone();
+    }
+}
+
+//Big Section
+var big = new Array();
+function createBig(amount) {
+    for (i=12; i < amount + 12; i++) {
+        common[i] = new setDrone("red", arena.width/20, speedX[i], speedY[i], placeX[i], placeY[i]);
+    }
+}
+function moveBig(amount) {
+    for (i=12; i < amount + 12; i++) {
+        common[i].instantiateDrone();
+    }
+}
+
+//Huge Section
+var huge = new Array();
+function createHuge(amount) {
+    for (i=18; i < amount + 18; i++) {
+        common[i] = new setDrone("purple", arena.width/10, speedX[i], speedY[i], placeX[i], placeY[i]);
+    }
+}
+function moveHuge(amount) {
+    for (i=18; i < amount + 18; i++) {
+        common[i].instantiateDrone();
+    }
+}
+
+function createAll() {
+    getVariables();
+    createCommon(12);
+    createBig(6);
+    createHuge(2);
+}
+createAll();
+</script>
+</body>
+</html>
