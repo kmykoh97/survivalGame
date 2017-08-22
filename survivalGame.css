@@ -6,9 +6,9 @@ arena {
 }
 
 .button {
-  background-color: white; 
+  background-color: White; 
   border-radius: 2px;
-  color: blue;
+  color: Blue;
   padding: 15px 32px;
   text-align: center;
   text-decoration: none;
@@ -20,8 +20,8 @@ arena {
 }
 
 .button:hover {
-  background-color: blue;
-  color: white;
+  background-color: Blue;
+  color: White;
   box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
